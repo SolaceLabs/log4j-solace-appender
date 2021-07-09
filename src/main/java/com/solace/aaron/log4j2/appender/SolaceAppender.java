@@ -32,17 +32,16 @@ public class SolaceAppender extends AbstractAppender {
         
         @PluginBuilderAttribute
         @Required(message = "No host provided for Solace PubSub+ appender")
-        private String host;
+        private String host = "localhost";
         
         @PluginBuilderAttribute
-        private String vpn;
+        private String vpn = "default";
         
         @PluginBuilderAttribute
-        private String username;
-        
+        private String username = "default";
         
         @PluginBuilderAttribute(sensitive = true)
-        private String password = "aaron";
+        private String password = "default";
         
         @PluginBuilderAttribute
         private String topicFormat = "host/%s";

@@ -159,7 +159,7 @@ public class SolaceManager extends AbstractManager {
     public void send(final LogEvent event, final Serializable serializable) throws JCSMPException {
         System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-        //msg.setText(serializable.toString());
+        msg.setText(serializable.toString());
 
         msg.setSenderTimestamp(event.getTimeMillis());
         String threadNameNoSlash = event.getThreadName().replaceAll("/","|");
