@@ -24,6 +24,10 @@ public class SolaceManager extends AbstractManager {
         String username = "aaron";
         String password = "aaron";
         
+        public void setHost(String host) {
+            System.out.println("SETTTTTTTTTTTTTTTTTTTTTTING HOST");
+            this.host = host;
+        }
         
         public String getHost() {
             return host;
@@ -69,7 +73,7 @@ public class SolaceManager extends AbstractManager {
                 System.out.println("YES IT IS NULL");
                 properties.setProperty(JCSMPProperties.SSL_CIPHER_SUITES, "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,SSL_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,SSL_RSA_WITH_RC4_128_SHA,SSL_RSA_WITH_RC4_128_MD5,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384");
             }                                                           // TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,SSL_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA,SSL_RSA_WITH_RC4_128_SHA,SSL_RSA_WITH_RC4_128_MD5,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-            System.out.println("HERE YOU GO!!!  "+properties.toString());
+            //System.out.println("HERE YOU GO!!!  "+properties.toString());
             return properties;
         }
 
@@ -87,6 +91,7 @@ public class SolaceManager extends AbstractManager {
         
         @Override
         public SolaceManager createManager(final String name, final SolaceManagerConfig data) {
+            System.out.println("SolaceManagerFactory.createManager() called");
             try {
                 return new SolaceManager(name, new SolaceManagerConfig());//null);
             } catch (final Exception e) {
@@ -112,7 +117,7 @@ public class SolaceManager extends AbstractManager {
 
     // static accessor method
     public static SolaceManager getManager(final LoggerContext loggerContext, final String name, final SolaceManagerConfig config) {
-        System.out.println("******* MANAGER.GETMANAGER context name config");
+        System.out.println("******* MANAGER.GETMANAGER() static");
         //final SolaceManagerConfig config = new SolaceManagerConfig();
         return getManager(name,FACTORY,config);
     }

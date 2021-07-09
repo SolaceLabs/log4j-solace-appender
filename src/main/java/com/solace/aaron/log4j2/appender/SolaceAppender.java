@@ -12,12 +12,15 @@ import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
+import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
 
-@Plugin(name = "SolaceAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
+@Plugin(name = "Solace", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 
 public class SolaceAppender extends AbstractAppender {
     
@@ -28,14 +31,14 @@ public class SolaceAppender extends AbstractAppender {
         public static final int DEFAULT_RECONNECT_INTERVAL_MILLIS = 5000;
         
         @PluginBuilderAttribute
-//        @Required
-        private String host = "localhost";
+        @Required(message = "No host provided for Solace PubSub+ appender")
+        private String host;
         
         @PluginBuilderAttribute
-        private String vpn = "aaron";
+        private String vpn;
         
         @PluginBuilderAttribute
-        private String username = "aaron";
+        private String username;
         
         
         @PluginBuilderAttribute(sensitive = true)
@@ -44,19 +47,29 @@ public class SolaceAppender extends AbstractAppender {
         @PluginBuilderAttribute
         private String topicFormat = "host/%s";
         
-        @PluginBuilderAttribute
-        private boolean immediateFail = true;
+//        @PluginBuilderAttribute
+//        private boolean immediateFail = true;
         
         // Programmatic access only for now.   ---- //  what does that mean???  copied from JMS appender
         private SolaceManager solaceManager = null;
         
+        // secret constructor
         private Builder() {
         }
         
-        @SuppressWarnings("resource") // actualJmsManager and jndiManager are managed by the JmsAppender
+//        @SuppressWarnings("resource")
         @Override
         public SolaceAppender build() {
+            System.out.println("APPENDER BUILDER BUILD() has been called");
             final LoggerContext loggerContext = getConfiguration().getLoggerContext();
+            
+            Configuration config = getConfiguration();
+            System.out.println("config properties: "+config.getProperties());
+            System.out.println("host is : "+host);
+            System.out.println("vpn is : "+vpn);
+            System.out.println("username is : "+username);
+            System.out.println("password is : "+password);
+            
 
             //final Layout<? extends Serializable> layout = getLayout();
             //if (layout == null) {
@@ -86,10 +99,17 @@ public class SolaceAppender extends AbstractAppender {
             }
         }
         
-
-        public B setHost(final String host) {
-            this.host = host;
-            return asBuilder();
+/*
+//        @PluginBuilderAttribute
+//        public B setHost(final String host) {
+//            System.out.println("############ WE ARE SETTING THE HOST: "+host);
+//            //LOGGER.error("waaaaaaaaaaaaaaaaaaaaaaaaaaaah");
+//            this.host = host;
+//            return asBuilder();
+//        }
+        
+        public String getHost() {
+            return host;
         }
         
         public B setVpn(final String vpn) {
@@ -98,6 +118,7 @@ public class SolaceAppender extends AbstractAppender {
         }
         
         public B setUsername(final String username) {
+            System.out.println("SET USERNASERNAMMEMEMMEMMEME");
             this.username = username;
             return asBuilder();
         }
@@ -115,21 +136,22 @@ public class SolaceAppender extends AbstractAppender {
         }
     
         
-        public B setImmediateFail(final boolean immediateFail) {
-            this.immediateFail = immediateFail;
-            return asBuilder();
-        }
+//        public B setImmediateFail(final boolean immediateFail) {
+//            this.immediateFail = immediateFail;
+//            return asBuilder();
+//        }
         
         public B setSolaceManager(final SolaceManager solaceManager) {
             this.solaceManager = solaceManager;
             return asBuilder();
         }
-        
+        */
     }     
         
     
     @PluginBuilderFactory
     public static <B extends Builder<B>> B newBuilder() {
+        System.out.println("******* SolaceAppdneder.newBuilder() called");
         return new Builder<B>().asBuilder();
     }
     
@@ -138,17 +160,14 @@ public class SolaceAppender extends AbstractAppender {
     SolaceManager manager = null;  // who is my manager?  Should only be one..?
     
 
-    // the actual constructor!
+    // the actual constructor!   I don't know who calls this
     protected SolaceAppender(String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions, Property[] properties, SolaceManager manager) {
         super(name, filter, layout, ignoreExceptions, properties);
+
+        System.out.println("STDOUT SOLACE APPENDER constructor");
         //this.manager = manager;
         this.manager = Objects.requireNonNull(manager, "manager");
         // anything else here???
-        System.out.println("STDOUT SOLACE APPENDER STARTIMNG");
-        //LOGGER.fatal("SOLACE APPENDER STARTIMNG");
-        
-        //LOGGER.fatal(layout.toString());
-
     }
 
     
@@ -172,6 +191,7 @@ public class SolaceAppender extends AbstractAppender {
     }
       
     public SolaceManager getManager() {
+        System.out.println("SolaceAPpender.getManager() called");
         return manager;
     }
 
