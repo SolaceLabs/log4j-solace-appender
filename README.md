@@ -3,7 +3,7 @@
 Hello!  This is the first at at an Appender for log4j2.  It uses direct messaging only right now.  And the published topic is completely dynamic!  E.g.:
 
 ```
-#sol-api-logs/AaronsThinkPad3/12540/INFO/main/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel/
+#sol-api-logs/AaronsThinkPad3/12540/INFO/main/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel
 
            <hostname>  / <PID> / <level> / <thread name> / class......
 ```
