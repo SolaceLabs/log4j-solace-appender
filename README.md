@@ -1,4 +1,4 @@
-# Solace Appender for log4j2 2.14+
+# Solace Appender for log4j 2.14+
 
 Hello!  This is the first cut at an Appender for log4j2.  It uses direct messaging only right now.  And the published topic is completely dynamic!  E.g.:
 
