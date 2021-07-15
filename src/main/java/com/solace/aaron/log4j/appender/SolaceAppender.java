@@ -80,7 +80,7 @@ public class SolaceAppender extends AbstractAppender {
             System.out.println("host is : "+host);
             System.out.println("vpn is : "+vpn);
             System.out.println("username is : "+username);
-            System.out.println("password is : "+password);
+            System.out.println("password is "+ password==null ? "null": password.isEmpty() ? "unset" : "set");
 //            System.out.println("topicFormat is : "+topicFormat);
             System.out.println("direct is : "+direct);
             

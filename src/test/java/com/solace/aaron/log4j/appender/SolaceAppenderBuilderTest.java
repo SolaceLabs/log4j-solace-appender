@@ -1,10 +1,10 @@
 
 package com.solace.aaron.log4j.appender;
 
-import com.solace.aaron.log4j.appender.SolaceAppender;
 import com.solace.aaron.log4j.appender.SolaceAppender.Builder;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class SolaceAppenderBuilderTest {
 
