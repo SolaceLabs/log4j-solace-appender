@@ -41,15 +41,12 @@ public class SolaceAppender extends AbstractAppender {
         @PluginBuilderAttribute(sensitive = true)
         private String password = "default";
         
-        @PluginBuilderAttribute
-        private String topicFormat = "host/%s";
+//        @PluginBuilderAttribute
+//        private String topicFormat = "host/%s";
 
         @PluginBuilderAttribute
         private Boolean direct = false;
 
-//        @PluginBuilderAttribute
-//        private boolean immediateFail = true;
-        
         // Programmatic access only for now.   ---- //  what does that mean???  copied from JMS appender
         private SolaceManager solaceManager = null;
         
@@ -61,8 +58,6 @@ public class SolaceAppender extends AbstractAppender {
         @Override
         public SolaceAppender build() {
             System.out.println("APPENDER BUILDER BUILD() has been called");
-            //final LoggerContext loggerContext = getConfiguration().getLoggerContext();
-            
             Configuration config = getConfiguration();
             System.out.println("config properties: "+config.getProperties());
             System.out.println("config context: "+config.getLoggerContext());
@@ -70,7 +65,7 @@ public class SolaceAppender extends AbstractAppender {
             System.out.println("vpn is : "+vpn);
             System.out.println("username is : "+username);
             System.out.println("password is : "+password);
-            System.out.println("topicFormat is : "+topicFormat);
+//            System.out.println("topicFormat is : "+topicFormat);
             System.out.println("direct is : "+direct);
             
             SolaceManagerConfig solaceConfig = new SolaceManagerConfig();
@@ -78,7 +73,7 @@ public class SolaceAppender extends AbstractAppender {
             solaceConfig.setVpn(vpn);
             solaceConfig.setUsername(username);
             solaceConfig.setPassword(password);
-            solaceConfig.setTopicFormat(topicFormat);
+//            solaceConfig.setTopicFormat(topicFormat);
             solaceConfig.setDirect(direct);
             solaceConfig.setContext(config.getLoggerContext());
             System.out.println(solaceConfig.toString());
@@ -93,9 +88,10 @@ public class SolaceAppender extends AbstractAppender {
             if (actualSolaceManager == null) {
 //                actualSolaceManager = AbstractManager.getManager(getName(), SolaceManager.FACTORY, configuration);
                 //actualSolaceManager = SolaceManager.getManager(loggerContext, getName(), SolaceManager.FACTORY, configuration);
-                actualSolaceManager = SolaceManager.getManager(getName(), solaceConfig);
+                actualSolaceManager = SolaceManager.getManager(getName(),SolaceManager.FACTORY,solaceConfig);
             }
             if (actualSolaceManager == null) {
+                // is it possible for getManager() to return null??
                 // JmsManagerFactory has already logged an ERROR.
                 return null;
             }

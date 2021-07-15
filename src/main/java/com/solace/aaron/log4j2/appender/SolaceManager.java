@@ -1,5 +1,6 @@
 package com.solace.aaron.log4j2.appender;
 
+import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
@@ -13,7 +14,6 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractManager;
 import org.apache.logging.log4j.core.appender.ManagerFactory;
-import org.apache.logging.log4j.core.config.Configuration;
 
 
 public class SolaceManager extends AbstractManager {
@@ -21,10 +21,10 @@ public class SolaceManager extends AbstractManager {
     public static class SolaceManagerConfig {
         
         String host = "localhost";
-        String vpn = "aaron";
-        String username = "aaron";
-        String password = "aaron";
-        String topicFormat = "";
+        String vpn = "default";
+        String username = "default";
+        String password = "default";
+//        String topicFormat = "";
         Boolean direct = false;
         LoggerContext context = null;
         
@@ -61,13 +61,13 @@ public class SolaceManager extends AbstractManager {
             this.password = password;
         }
         
-        public String getTopicFormat() {
-            return topicFormat;
-        }
-        
-        public void setTopicFormat(String topicFormat) {
-            this.topicFormat = topicFormat;
-        }
+//        public String getTopicFormat() {
+//            return topicFormat;
+//        }
+//        
+//        public void setTopicFormat(String topicFormat) {
+//            this.topicFormat = topicFormat;
+//        }
 
         public boolean getDirect() {
             return direct;
@@ -134,11 +134,11 @@ public class SolaceManager extends AbstractManager {
 //    }
 
     // static accessor method
-    public static SolaceManager getManager(final String name, final SolaceManagerConfig config) {
-        System.out.println("******* MANAGER.GETMANAGER() static");
-        //final SolaceManagerConfig config = new SolaceManagerConfig();
-        return getManager(name,FACTORY,config);  // this is the super one?
-    }
+//    public static SolaceManager getManager(final String name, final SolaceManagerConfig config) {
+//        System.out.println("******* MANAGER.GETMANAGER() static");
+//        //final SolaceManagerConfig config = new SolaceManagerConfig();
+//        return getManager(name,FACTORY,config);  // this is the super one?
+//    }
 
     private final SolaceManagerConfig config;
     private final JCSMPSession session;
@@ -180,10 +180,11 @@ public class SolaceManager extends AbstractManager {
         //System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
         msg.setText(serializable.toString());
-
+        if (!this.config.direct) msg.setDeliveryMode(DeliveryMode.PERSISTENT);
         // topic will look like 'log4j-log/hostname/pid/[INFO|WARN|etc.]/thread-name/com/whatever/blah/classname'
         msg.setSenderTimestamp(event.getTimeMillis());
         String threadNameNoSlash = event.getThreadName().replaceAll("/","|");
+        // for the topic of this message, if it's an exception being thrown, let's use the name of the exception in the topic instead
         String classNameTopic = (event.getThrownProxy() != null ? event.getThrownProxy().getName() : event.getLoggerName()).replaceAll("\\.","/");
         String topic = String.format("log4j-%s/%s/%s/%s/%s/%s",
                 (event.getThrownProxy() != null ? "error" : "log"),
@@ -191,9 +192,11 @@ public class SolaceManager extends AbstractManager {
                 pid,
                 event.getLevel(),
                 threadNameNoSlash,
-                classNameTopic);
-        topic += "/"+event.getMessage().getFormattedMessage();
-        topic = topic.substring(0, Math.min(topic.length(), 250));
+                classNameTopic);  // this last one could have multiple topic levels
+        if ("test" == "test") {
+            topic += "/"+event.getMessage().getFormattedMessage();
+            topic = topic.substring(0, Math.min(topic.length(), 250));
+        }
         System.out.println("SENDING::>> "+topic);
         producer.send(msg,JCSMPFactory.onlyInstance().createTopic(topic));
     }
