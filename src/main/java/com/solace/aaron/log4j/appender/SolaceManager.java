@@ -152,11 +152,11 @@ public class SolaceManager extends AbstractManager {
 //    }
 
     // static accessor method
-//    public static SolaceManager getManager(final String name, final SolaceManagerConfig config) {
-//        System.out.println("******* MANAGER.GETMANAGER() static");
-//        //final SolaceManagerConfig config = new SolaceManagerConfig();
-//        return getManager(name,FACTORY,config);  // this is the super one?
-//    }
+    public static SolaceManager getManager(final String name, final SolaceManagerConfig config) {
+        System.out.println("******* MANAGER.GETMANAGER() static");
+        //final SolaceManagerConfig config = new SolaceManagerConfig();
+        return getManager(name,FACTORY,config);  // this is the super one?
+    }
 
     private final SolaceManagerConfig config;
     private final JCSMPSession session;

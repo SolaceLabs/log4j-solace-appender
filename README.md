@@ -20,13 +20,21 @@ I should make an MQTT version as well, since MQTT also supports awesome dynamic 
 For example, in your log4j2.xml file, specify a `Solace` Appender, something like:
 
 ```
+...
   <Appenders>
-    <Solace host="192.168.42.35" vpn="logs" username="test" password="secret">
+    <Solace name="solaceLogger" host="192.168.42.35" vpn="logs" username="test" password="secret">
       <PatternLayout>
         <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
       <!--JSONLayout/-->
     </Solace>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="solaceLogger"/>
+    </Root>
+  </Loggers>
+...
 ```
 
 - `host`: hostname or IP address of the Solace broker (default="`localhost`")

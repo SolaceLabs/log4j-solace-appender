@@ -64,12 +64,13 @@ public class SolaceAppender extends AbstractAppender {
         
         // secret constructor
         private Builder() {
+            super();
         }
         
 //        @SuppressWarnings("resource")
         @Override
         public SolaceAppender build() {
-            System.out.println("APPENDER BUILDER BUILD() has been called");
+            System.out.println("SOLACE APPENDER BUILDER BUILD() has been called");
             Configuration config = getConfiguration();  // should get initialized by log4j framework, might not for Tests
             if (config != null) {
                 System.out.println("config properties: "+config.getProperties());
@@ -80,7 +81,7 @@ public class SolaceAppender extends AbstractAppender {
             System.out.println("host is : "+host);
             System.out.println("vpn is : "+vpn);
             System.out.println("username is : "+username);
-            System.out.println("password is "+ password==null ? "null": password.isEmpty() ? "unset" : "set");
+            System.out.println("password is "+ (password==null ? "null": password.isEmpty() ? "unset" : "set"));
 //            System.out.println("topicFormat is : "+topicFormat);
             System.out.println("direct is : "+direct);
             
@@ -104,7 +105,7 @@ public class SolaceAppender extends AbstractAppender {
             if (actualSolaceManager == null) {
 //                actualSolaceManager = AbstractManager.getManager(getName(), SolaceManager.FACTORY, configuration);
                 //actualSolaceManager = SolaceManager.getManager(loggerContext, getName(), SolaceManager.FACTORY, configuration);
-                actualSolaceManager = SolaceManager.getManager(getName(),SolaceManager.FACTORY,solaceConfig);
+                actualSolaceManager = SolaceManager.getManager(getName(),solaceConfig);
             }
             if (actualSolaceManager == null) {
                 // is it possible for getManager() to return null??
@@ -171,10 +172,10 @@ public class SolaceAppender extends AbstractAppender {
 //            return asBuilder();
 //        }
         
-        public B setSolaceManager(final SolaceManager solaceManager) {
-            this.solaceManager = solaceManager;
-            return asBuilder();
-        }
+//        public B setSolaceManager(final SolaceManager solaceManager) {
+//            this.solaceManager = solaceManager;
+//            return asBuilder();
+//        }
         
     }
     
@@ -192,6 +193,7 @@ public class SolaceAppender extends AbstractAppender {
 
     // the actual constructor!   I don't know who calls this
     protected SolaceAppender(String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions, Property[] properties, SolaceManager manager) {
+        //System.out.println("sadf");
         super(name, filter, layout, ignoreExceptions, properties);
         System.out.println("STDOUT SOLACE APPENDER constructor");
         //this.manager = manager;
