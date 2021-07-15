@@ -38,7 +38,7 @@ public class SolaceManager extends AbstractManager {
         String host = "localhost";
         String vpn = "default";
         String username = "default";
-        String password = "default";
+        String password = "";
 //        String topicFormat = "";
         Boolean direct = false;
         LoggerContext context = null;

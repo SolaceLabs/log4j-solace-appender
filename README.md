@@ -17,7 +17,7 @@ I should make an MQTT version as well, since MQTT also supports awesome dynamic 
 
 ## Options
 
-For example, in your log4j2.xml file, specify a `solace` Appender:
+For example, in your log4j2.xml file, specify a `Solace` Appender, something like:
 
 ```
   <Appenders>
@@ -32,5 +32,5 @@ For example, in your log4j2.xml file, specify a `solace` Appender:
 - `host`: hostname or IP address of the Solace broker (default="`localhost`")
 - `vpn`: Message VPN to connect to  (default="`default`")
 - `username`: Client username to connect with  (default="`default`")
-- `password`: Password for client connection, if required (default="`default`")
+- `password`: Password for client connection, if required (default="")
 

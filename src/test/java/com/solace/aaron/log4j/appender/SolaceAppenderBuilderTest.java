@@ -27,7 +27,7 @@ public class SolaceAppenderBuilderTest {
 
     @Test public void testSolaceAppenderBuilderDefaultPassword() {
         Builder<?> saBuilder = SolaceAppender.newBuilder();
-        assertEquals("SolaceAppender.Builder should have default has default password","default",saBuilder.getPassword());
+        assertEquals("SolaceAppender.Builder should have default has default password","",saBuilder.getPassword());
     }
 
 

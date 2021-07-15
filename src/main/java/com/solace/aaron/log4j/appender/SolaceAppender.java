@@ -51,7 +51,7 @@ public class SolaceAppender extends AbstractAppender {
         private String username = "default";
         
         @PluginBuilderAttribute(sensitive = true)
-        private String password = "default";
+        private String password = "";
         
 //        @PluginBuilderAttribute
 //        private String topicFormat = "host/%s";
