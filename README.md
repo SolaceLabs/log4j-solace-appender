@@ -1,6 +1,6 @@
 # Solace Appender for log4j 2.14+
 
-Hello!  This is the first cut at an Appender for log4j2.  It can use either Direct messaging or Guaranteed (but does not attempt redelivery).  And the published topic is completely dynamic!  E.g.:
+Hello!  This is the first cut at an Appender for log4j2.  It can use either Direct messaging or Guaranteed (but does not attempt redelivery).  And the published **topic is completely dynamic!**  E.g.:
 
 ```
 #sol-api-log/AaronsThinkPad3/12540/INFO/main/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel
