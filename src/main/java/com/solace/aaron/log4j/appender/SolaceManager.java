@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.solace.aaron.log4j2.appender;
+package com.solace.aaron.log4j.appender;
 
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPException;

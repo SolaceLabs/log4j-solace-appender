@@ -1,6 +1,6 @@
 # Solace Appender for log4j 2.14+
 
-Hello!  This is the first cut at an Appender for log4j2.  It uses direct messaging only right now.  And the published topic is completely dynamic!  E.g.:
+Hello!  This is the first cut at an Appender for log4j2.  It can use either Direct messaging or Guaranteed (but does not attempt redelivery).  And the published topic is completely dynamic!  E.g.:
 
 ```
 #sol-api-log/AaronsThinkPad3/12540/INFO/main/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel
@@ -15,4 +15,22 @@ I should make an MQTT version as well, since MQTT also supports awesome dynamic 
 
 
 
+## Options
+
+For example, in your log4j2.xml file, specify a `solace` Appender:
+
+```
+  <Appenders>
+    <Solace host="192.168.42.35" vpn="logs" username="test" password="secret">
+      <PatternLayout>
+        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <!--JSONLayout/-->
+    </Solace>
+```
+
+- `host`: hostname or IP address of the Solace broker (default="`localhost`")
+- `vpn`: Message VPN to connect to  (default="`default`")
+- `username`: Client username to connect with  (default="`default`")
+- `password`: Password for client connection, if required (default="`default`")
 

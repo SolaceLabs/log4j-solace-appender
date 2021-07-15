@@ -14,9 +14,9 @@
  * the License.
  */
 
-package com.solace.aaron.log4j2.appender;
+package com.solace.aaron.log4j.appender;
 
-import com.solace.aaron.log4j2.appender.SolaceManager.SolaceManagerConfig;
+import com.solace.aaron.log4j.appender.SolaceManager.SolaceManagerConfig;
 import com.solacesystems.jcsmp.JCSMPException;
 import java.io.Serializable;
 import java.util.Objects;

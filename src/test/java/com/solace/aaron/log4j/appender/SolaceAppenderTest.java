@@ -1,7 +1,8 @@
 
-package com.solace.aaron.log4j2.appender;
+package com.solace.aaron.log4j.appender;
 
-import com.solace.aaron.log4j2.appender.SolaceAppender.Builder;
+import com.solace.aaron.log4j.appender.SolaceAppender;
+import com.solace.aaron.log4j.appender.SolaceAppender.Builder;
 import org.junit.Test;
 
 
