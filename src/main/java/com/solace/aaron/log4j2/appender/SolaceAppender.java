@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 Solace Corporation. All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.solace.aaron.log4j2.appender;
 
 import com.solace.aaron.log4j2.appender.SolaceManager.SolaceManagerConfig;
@@ -22,12 +38,8 @@ import org.apache.logging.log4j.core.config.plugins.validation.constraints.Requi
 
 public class SolaceAppender extends AbstractAppender {
     
-    
-    
     public static class Builder<B extends Builder<B>> extends AbstractAppender.Builder<B> implements org.apache.logging.log4j.core.util.Builder<SolaceAppender> {
 
-        public static final int DEFAULT_RECONNECT_INTERVAL_MILLIS = 5000;
-        
         @PluginBuilderAttribute
         @Required(message = "No host provided for Solace PubSub+ appender")
         private String host = "localhost";
@@ -58,9 +70,13 @@ public class SolaceAppender extends AbstractAppender {
         @Override
         public SolaceAppender build() {
             System.out.println("APPENDER BUILDER BUILD() has been called");
-            Configuration config = getConfiguration();
-            System.out.println("config properties: "+config.getProperties());
-            System.out.println("config context: "+config.getLoggerContext());
+            Configuration config = getConfiguration();  // should get initialized by log4j framework, might not for Tests
+            if (config != null) {
+                System.out.println("config properties: "+config.getProperties());
+                System.out.println("config context: "+config.getLoggerContext());
+            } else {
+                System.out.println("config is null");
+            }
             System.out.println("host is : "+host);
             System.out.println("vpn is : "+vpn);
             System.out.println("username is : "+username);
@@ -75,7 +91,7 @@ public class SolaceAppender extends AbstractAppender {
             solaceConfig.setPassword(password);
 //            solaceConfig.setTopicFormat(topicFormat);
             solaceConfig.setDirect(direct);
-            solaceConfig.setContext(config.getLoggerContext());
+            if (config != null) solaceConfig.setContext(config.getLoggerContext());
             System.out.println(solaceConfig.toString());
 
             //final Layout<? extends Serializable> layout = getLayout();
@@ -107,17 +123,17 @@ public class SolaceAppender extends AbstractAppender {
             }
         }
         
-/*
-//        @PluginBuilderAttribute
-//        public B setHost(final String host) {
-//            System.out.println("############ WE ARE SETTING THE HOST: "+host);
-//            //LOGGER.error("waaaaaaaaaaaaaaaaaaaaaaaaaaaah");
-//            this.host = host;
-//            return asBuilder();
-//        }
-        
         public String getHost() {
             return host;
+        }
+        
+        public B setHost(final String host) {
+            this.host = host;
+            return asBuilder();
+        }
+        
+        public String getVpn() {
+            return vpn;
         }
         
         public B setVpn(final String vpn) {
@@ -125,23 +141,29 @@ public class SolaceAppender extends AbstractAppender {
             return asBuilder();
         }
         
+        public String getUsername() {
+            return username;
+        }
+        
         public B setUsername(final String username) {
-            System.out.println("SET USERNASERNAMMEMEMMEMMEME");
             this.username = username;
             return asBuilder();
         }
         
+        public String getPassword() {
+            return password;
+        }
+
         public B setPassword(final String password) {
             this.password = password;
             return asBuilder();
-       
         }
     
-        public B setTopicFormatter(final String topicFormat) {
-            this.topicFormat = topicFormat;
-            return asBuilder();
-       
-        }
+//        public B setTopicFormatter(final String topicFormat) {
+//            this.topicFormat = topicFormat;
+//            return asBuilder();
+//       
+//        }
     
         
 //        public B setImmediateFail(final boolean immediateFail) {
@@ -153,13 +175,17 @@ public class SolaceAppender extends AbstractAppender {
             this.solaceManager = solaceManager;
             return asBuilder();
         }
-        */
+        
     }
+    
+    
+    
+    // MAIN CLASS //////////////////////////////////////////////////////////////
     
     @PluginBuilderFactory
     public static <B extends Builder<B>> B newBuilder() {
         System.out.println("******* SolaceAppdneder.newBuilder() called");
-        return new Builder<B>().asBuilder();
+        return new SolaceAppender.Builder<B>().asBuilder();
     }
     
     SolaceManager manager = null;  // who is my manager?  Should only be one..?

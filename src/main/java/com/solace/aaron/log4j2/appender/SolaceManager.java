@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 Solace Corporation. All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.solace.aaron.log4j2.appender;
 
 import com.solacesystems.jcsmp.DeliveryMode;
@@ -15,7 +31,6 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractManager;
 import org.apache.logging.log4j.core.appender.ManagerFactory;
 
-
 public class SolaceManager extends AbstractManager {
 
     public static class SolaceManagerConfig {
@@ -29,7 +44,6 @@ public class SolaceManager extends AbstractManager {
         LoggerContext context = null;
         
         public void setHost(String host) {
-            System.out.println("SETTTTTTTTTTTTTTTTTTTTTTING HOST");
             this.host = host;
         }
         
@@ -84,7 +98,6 @@ public class SolaceManager extends AbstractManager {
         public void setContext(LoggerContext context) {
             this.context = context;
         }
-
         
         public JCSMPProperties getProperties() {
             final JCSMPProperties properties = new JCSMPProperties();
@@ -103,10 +116,11 @@ public class SolaceManager extends AbstractManager {
     }
 
     
+    
+    
+    // ManagerFactory for the SolaceManager, helper class to create managers
     private static class SolaceManagerFactory implements ManagerFactory<SolaceManager, SolaceManagerConfig> {
 
-        
-        
         @Override
         public SolaceManager createManager(final String name, final SolaceManagerConfig config) {
             System.out.println("SolaceManagerFactory.createManager() called");
@@ -121,7 +135,11 @@ public class SolaceManager extends AbstractManager {
                 return null;
             }
         }
-    }
+    };
+    
+    
+    
+    // BEGIN SolaceManager class ///////////////////////////////////////////////////////////////////
     
     // singleton factory for building SolaceManagers
     static final SolaceManagerFactory FACTORY = new SolaceManagerFactory();
@@ -157,8 +175,8 @@ public class SolaceManager extends AbstractManager {
         String[] clientNameLevels = ((String)session.getProperty(JCSMPProperties.CLIENT_NAME)).split("\\/");
         this.hostnameOrIp = clientNameLevels[0];
         this.pid = clientNameLevels[1];
-        session.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "mf_logstash_publisher_solace_cliend");
-        session.setProperty(JCSMPProperties.CLIENT_NAME, "mf_logstash_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
+        session.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "log4j Solace appender publisher");
+        session.setProperty(JCSMPProperties.CLIENT_NAME, "log4j_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         session.connect();
         producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
             
