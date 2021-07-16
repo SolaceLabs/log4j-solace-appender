@@ -200,9 +200,8 @@ public class SolaceAppender extends AbstractAppender {
     
     SolaceManager manager = null;  // who is my manager?  Should only be one..?
 
-    // the actual constructor!   I don't know who calls this
+    // the actual constructor!  Called by Builder.build() above
     protected SolaceAppender(String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions, Property[] properties, SolaceManager manager) {
-        //System.out.println("sadf");
         super(name, filter, layout, ignoreExceptions, properties);
         System.out.println("STDOUT SOLACE APPENDER constructor");
         //this.manager = manager;
@@ -227,8 +226,10 @@ public class SolaceAppender extends AbstractAppender {
 
     @Override
     public boolean stop(final long timeout, final TimeUnit timeUnit) {
+        setStopping();
         boolean stopped = super.stop(timeout, timeUnit, false);
         stopped &= this.manager.stop(timeout, timeUnit);
+        setStopped();
         return stopped;
     }
 

@@ -32,6 +32,7 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractManager;
 import org.apache.logging.log4j.core.appender.ManagerFactory;
+import org.apache.logging.log4j.core.impl.ThrowableProxy;
 
 public class SolaceManager extends AbstractManager {
 
@@ -230,10 +231,14 @@ public class SolaceManager extends AbstractManager {
             topic = topic.substring(0, Math.min(topic.length(), 250));
         }
         SDTMap map = JCSMPFactory.onlyInstance().createMap();
-        map.putString("threadName", event.getThreadName());
-        map.putString("className", event.getLoggerFqcn());
+        map.putString("thread", event.getThreadName());
+        map.putString("loggerName", event.getLoggerName());
         map.putString("level", event.getLevel().name());
         map.putString("message", event.getMessage().getFormattedMessage());
+        if (event.getThrownProxy() != null) {
+            ThrowableProxy thrown = event.getThrownProxy();
+            map.putString("thrownName",thrown.getName());
+        }
         msg.setProperties(map);
         System.out.println("SENDING::>> "+topic);
         producer.send(msg,JCSMPFactory.onlyInstance().createTopic(topic));
