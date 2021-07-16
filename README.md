@@ -3,10 +3,9 @@
 Hello!  This is the first cut at an Appender for log4j2.  It can use either Direct messaging or Guaranteed (but does not attempt redelivery).  And the published **topic is completely dynamic!**  E.g.:
 
 ```
-#sol-api-log/AaronsThinkPad3/12540/INFO/main/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel
-                       |      |    |      |    |
-                  hostname/ PID /level/thread/class......
-                                         name
+log4j-log/AaronsThinkPad3/12540/INFO/pub-thread/com/solacesystems/jcsmp/protocol/impl/TcpClientChannel
+                     |      |    |      |         |-->
+                  hostname/PID/level/thread-name/class......
 ```
 
 So much better than crappy JMS and Kafka publishers that just publish to a fixed static topic!
@@ -41,4 +40,5 @@ For example, in your log4j2.xml file, specify a `Solace` Appender, something lik
 - `vpn`: Message VPN to connect to  (default="`default`")
 - `username`: Client username to connect with  (default="`default`")
 - `password`: Password for client connection, if required (default="")
+- `direct`: ["true"|"false"] Whether to use Direct or Guaranteed messages (default="`false`")
 

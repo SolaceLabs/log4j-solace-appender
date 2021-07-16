@@ -22,9 +22,11 @@ import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
+import com.solacesystems.jcsmp.SDTMap;
 import com.solacesystems.jcsmp.TextMessage;
 import com.solacesystems.jcsmp.XMLMessageProducer;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -99,13 +101,25 @@ public class SolaceManager extends AbstractManager {
             this.context = context;
         }
         
-        public JCSMPProperties getProperties() {
-            final JCSMPProperties properties = new JCSMPProperties();
+        public JCSMPProperties getJcsmpProperties() {
+            System.out.println("default context: "+JCSMPFactory.onlyInstance().getDefaultContext().toString());
+            System.out.println(Arrays.toString(com.solacesystems.jcsmp.secure.SecureProperties.SupportedJSSECipherNamesArray));
+            
+            for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
+                System.out.printf("%s %s %d%n",e.getClassName(),e.getMethodName(),e.getLineNumber());
+            }
+            
+            JCSMPProperties properties = new JCSMPProperties();
+            System.out.println(properties.getProperty(JCSMPProperties.SSL_CIPHER_SUITES));
+            JCSMPFactory.onlyInstance().getDefaultContext();
+            properties = new JCSMPProperties();
+            System.out.println(properties.getProperty(JCSMPProperties.SSL_CIPHER_SUITES));
+            
             properties.setProperty(JCSMPProperties.HOST,host);          // host:port
             properties.setProperty(JCSMPProperties.VPN_NAME,vpn);     // message-vpn
             properties.setProperty(JCSMPProperties.USERNAME,username);      // client-username
             properties.setProperty(JCSMPProperties.PASSWORD,password);  // client-password
-            System.out.println("Solace properties:"+properties.toString());
+            LOGGER.debug("Solace properties:"+properties.toString());
             return properties;
         }
 
@@ -170,7 +184,7 @@ public class SolaceManager extends AbstractManager {
         this.config = config;
         System.out.println(this.config);
         
-        session = JCSMPFactory.onlyInstance().createSession(this.config.getProperties());
+        session = JCSMPFactory.onlyInstance().createSession(this.config.getJcsmpProperties());
         System.out.println("I HAVE SUCCESSFULLY CREATED A SESSION");
         String[] clientNameLevels = ((String)session.getProperty(JCSMPProperties.CLIENT_NAME)).split("\\/");
         this.hostnameOrIp = clientNameLevels[0];
@@ -178,7 +192,7 @@ public class SolaceManager extends AbstractManager {
         session.setProperty(JCSMPProperties.APPLICATION_DESCRIPTION, "log4j Solace appender publisher");
         session.setProperty(JCSMPProperties.CLIENT_NAME, "log4j_"+session.getProperty(JCSMPProperties.CLIENT_NAME));
         session.connect();
-        producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {
+        producer = session.getMessageProducer(new JCSMPStreamingPublishCorrelatingEventHandler() {  // need to implement something here if we want to do Guaranteed
             
             @Override
             public void responseReceivedEx(Object key) {
@@ -197,7 +211,7 @@ public class SolaceManager extends AbstractManager {
     public void send(final LogEvent event, final Serializable serializable) throws JCSMPException {
         //System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-        msg.setText(serializable.toString());
+        msg.setText(serializable != null ? serializable.toString() : event.getMessage().getFormattedMessage());
         if (!this.config.direct) msg.setDeliveryMode(DeliveryMode.PERSISTENT);
         // topic will look like 'log4j-log/hostname/pid/[INFO|WARN|etc.]/thread-name/com/whatever/blah/classname'
         msg.setSenderTimestamp(event.getTimeMillis());
@@ -215,6 +229,12 @@ public class SolaceManager extends AbstractManager {
             topic += "/"+event.getMessage().getFormattedMessage();
             topic = topic.substring(0, Math.min(topic.length(), 250));
         }
+        SDTMap map = JCSMPFactory.onlyInstance().createMap();
+        map.putString("threadName", event.getThreadName());
+        map.putString("className", event.getLoggerFqcn());
+        map.putString("level", event.getLevel().name());
+        map.putString("message", event.getMessage().getFormattedMessage());
+        msg.setProperties(map);
         System.out.println("SENDING::>> "+topic);
         producer.send(msg,JCSMPFactory.onlyInstance().createTopic(topic));
     }

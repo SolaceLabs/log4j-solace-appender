@@ -38,6 +38,14 @@ import org.apache.logging.log4j.core.config.plugins.validation.constraints.Requi
 
 public class SolaceAppender extends AbstractAppender {
     
+    enum PublishMode {
+            DIRECT,
+            GUAR_NO_REPUB,
+            GUAR_REPUB_NO_ORDER,
+            GUAR_STRICT_ORDER,
+            ;
+    }
+    
     public static class Builder<B extends Builder<B>> extends AbstractAppender.Builder<B> implements org.apache.logging.log4j.core.util.Builder<SolaceAppender> {
 
         @PluginBuilderAttribute
@@ -93,7 +101,7 @@ public class SolaceAppender extends AbstractAppender {
 //            solaceConfig.setTopicFormat(topicFormat);
             solaceConfig.setDirect(direct);
             if (config != null) solaceConfig.setContext(config.getLoggerContext());
-            System.out.println(solaceConfig.toString());
+            LOGGER.debug(solaceConfig.toString());
 
             //final Layout<? extends Serializable> layout = getLayout();
             //if (layout == null) {
@@ -105,7 +113,7 @@ public class SolaceAppender extends AbstractAppender {
             if (actualSolaceManager == null) {
 //                actualSolaceManager = AbstractManager.getManager(getName(), SolaceManager.FACTORY, configuration);
                 //actualSolaceManager = SolaceManager.getManager(loggerContext, getName(), SolaceManager.FACTORY, configuration);
-                actualSolaceManager = SolaceManager.getManager(getName(),solaceConfig);
+                actualSolaceManager = SolaceManager.getManager(getName(),SolaceManager.FACTORY,solaceConfig);
             }
             if (actualSolaceManager == null) {
                 // is it possible for getManager() to return null??
@@ -124,6 +132,7 @@ public class SolaceAppender extends AbstractAppender {
             }
         }
         
+        // these are not actually required by the appender, only for unit tests
         public String getHost() {
             return host;
         }
@@ -204,6 +213,7 @@ public class SolaceAppender extends AbstractAppender {
     @Override
     public void append(final LogEvent event) {
         try {
+            // if layout is null, toSerializable() will return null
             this.manager.send(event, toSerializable(event));
         } catch (JCSMPException e) {
             e.printStackTrace();
