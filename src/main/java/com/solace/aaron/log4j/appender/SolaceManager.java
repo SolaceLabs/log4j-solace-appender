@@ -43,7 +43,8 @@ public class SolaceManager extends AbstractManager {
         String username = "default";
         String password = "";
 //        String topicFormat = "";
-        Boolean direct = false;
+        boolean direct = false;
+        String appName = "";
         LoggerContext context = null;
         
         public void setHost(String host) {
@@ -90,8 +91,12 @@ public class SolaceManager extends AbstractManager {
             return direct;
         }
         
-        public void setDirect(Boolean direct) {
+        public void setDirect(boolean direct) {
             this.direct = direct;
+        }
+        
+        public void setAppName(String appName) {
+        	this.appName = appName;
         }
         
         public LoggerContext getContext() {
@@ -106,9 +111,10 @@ public class SolaceManager extends AbstractManager {
             System.out.println("default context: "+JCSMPFactory.onlyInstance().getDefaultContext().toString());
             System.out.println(Arrays.toString(com.solacesystems.jcsmp.secure.SecureProperties.SupportedJSSECipherNamesArray));
             
-            for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
-                System.out.printf("%s %s %d%n",e.getClassName(),e.getMethodName(),e.getLineNumber());
-            }
+            // this is fixed now, in new JCSMP
+//            for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
+//                System.out.printf("%s %s %d%n",e.getClassName(),e.getMethodName(),e.getLineNumber());
+//            }
             
             JCSMPProperties properties = new JCSMPProperties();
             System.out.println(properties.getProperty(JCSMPProperties.SSL_CIPHER_SUITES));
@@ -212,24 +218,24 @@ public class SolaceManager extends AbstractManager {
     public void send(final LogEvent event, final Serializable serializable) throws JCSMPException {
         //System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
-        msg.setText(serializable != null ? serializable.toString() : event.getMessage().getFormattedMessage());
+        msg.setText(serializable != null ? serializable.toString().trim() : event.getMessage().getFormattedMessage().trim());
         if (!this.config.direct) msg.setDeliveryMode(DeliveryMode.PERSISTENT);
         // topic will look like 'log4j-log/hostname/pid/[INFO|WARN|etc.]/thread-name/com/whatever/blah/classname'
         msg.setSenderTimestamp(event.getTimeMillis());
         String threadNameNoSlash = event.getThreadName().replaceAll("/","|");
         // for the topic of this message, if it's an exception being thrown, let's use the name of the exception in the topic instead
         String classNameTopic = (event.getThrownProxy() != null ? event.getThrownProxy().getName() : event.getLoggerName()).replaceAll("\\.","/");
-        String topic = String.format("log4j-%s/%s/%s/%s/%s/%s",
+        
+        String topic = String.format("log4j-%s/%s/%s/%s/%s",
                 (event.getThrownProxy() != null ? "error" : "log"),
-                hostnameOrIp,
-                pid,
-                event.getLevel(),
+                config.appName.isEmpty() ? hostnameOrIp + "-" + pid : config.appName,
+                event.getLevel().toString(),
                 threadNameNoSlash,
                 classNameTopic);  // this last one could have multiple topic levels
-        if ("test" == "test") {
-            topic += "/"+event.getMessage().getFormattedMessage();
-            topic = topic.substring(0, Math.min(topic.length(), 250));
-        }
+//        if ("test" != "test") {
+//            topic += "/"+event.getMessage().getFormattedMessage();
+//            topic = topic.substring(0, Math.min(topic.length(), 250));
+//        }
         SDTMap map = JCSMPFactory.onlyInstance().createMap();
         map.putString("thread", event.getThreadName());
         map.putString("loggerName", event.getLoggerName());
@@ -240,7 +246,7 @@ public class SolaceManager extends AbstractManager {
             map.putString("thrownName",thrown.getName());
         }
         msg.setProperties(map);
-        System.out.println("SENDING::>> "+topic);
+//        System.out.println("SENDING::>> "+topic);
         producer.send(msg,JCSMPFactory.onlyInstance().createTopic(topic));
     }
     

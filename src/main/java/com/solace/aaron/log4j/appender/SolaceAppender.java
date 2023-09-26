@@ -66,6 +66,10 @@ public class SolaceAppender extends AbstractAppender {
 
         @PluginBuilderAttribute
         private Boolean direct = false;
+        
+        @PluginBuilderAttribute
+        private String appName = "DefaultApp";
+        
 
         // Programmatic access only for now.   ---- //  what does that mean???  copied from JMS appender
         private SolaceManager solaceManager = null;
@@ -100,6 +104,7 @@ public class SolaceAppender extends AbstractAppender {
             solaceConfig.setPassword(password);
 //            solaceConfig.setTopicFormat(topicFormat);
             solaceConfig.setDirect(direct);
+            solaceConfig.setAppName(appName);
             if (config != null) solaceConfig.setContext(config.getLoggerContext());
             LOGGER.debug(solaceConfig.toString());
 
