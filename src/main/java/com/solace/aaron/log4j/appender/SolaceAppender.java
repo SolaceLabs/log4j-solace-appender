@@ -16,11 +16,10 @@
 
 package com.solace.aaron.log4j.appender;
 
-import com.solace.aaron.log4j.appender.SolaceManager.SolaceManagerConfig;
-import com.solacesystems.jcsmp.JCSMPException;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Core;
 import org.apache.logging.log4j.core.Filter;
@@ -33,6 +32,8 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderAttribute;
 import org.apache.logging.log4j.core.config.plugins.PluginBuilderFactory;
 import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
+
+import com.solace.aaron.log4j.appender.SolaceManager.SolaceManagerConfig;
 
 @Plugin(name = "Solace", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE)
 
@@ -216,12 +217,16 @@ public class SolaceAppender extends AbstractAppender {
 
     @Override
     public void append(final LogEvent event) {
-        try {
-            // if layout is null, toSerializable() will return null
-            this.manager.send(event, toSerializable(event));
-        } catch (JCSMPException e) {
-            e.printStackTrace();
-        }
+    	boolean success = this.manager.enqueue(event, toSerializable(event));
+    	if (!success) {
+    		LOGGER.info("Could not enqueue log msg to send on Solace, max send buffer capacity reached");
+    	}
+//        try {
+//            // if layout is null, toSerializable() will return null
+//            this.manager.send(event, toSerializable(event));
+//        } catch (JCSMPException e) {
+//            e.printStackTrace();
+//        }
     }
       
     public SolaceManager getManager() {

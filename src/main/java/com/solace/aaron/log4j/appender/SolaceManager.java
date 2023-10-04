@@ -16,23 +16,32 @@
 
 package com.solace.aaron.log4j.appender;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.AbstractManager;
+import org.apache.logging.log4j.core.appender.ManagerFactory;
+import org.apache.logging.log4j.core.impl.ThrowableProxy;
+
+import com.solacesystems.jcsmp.BytesXMLMessage;
 import com.solacesystems.jcsmp.DeliveryMode;
 import com.solacesystems.jcsmp.JCSMPException;
 import com.solacesystems.jcsmp.JCSMPFactory;
 import com.solacesystems.jcsmp.JCSMPProperties;
 import com.solacesystems.jcsmp.JCSMPSession;
 import com.solacesystems.jcsmp.JCSMPStreamingPublishCorrelatingEventHandler;
+import com.solacesystems.jcsmp.SDTException;
 import com.solacesystems.jcsmp.SDTMap;
 import com.solacesystems.jcsmp.TextMessage;
 import com.solacesystems.jcsmp.XMLMessageProducer;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.core.LogEvent;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.AbstractManager;
-import org.apache.logging.log4j.core.appender.ManagerFactory;
-import org.apache.logging.log4j.core.impl.ThrowableProxy;
 
 public class SolaceManager extends AbstractManager {
 
@@ -132,7 +141,7 @@ public class SolaceManager extends AbstractManager {
 
         @Override
         public String toString() {
-            return "SolaceMnaagerConfig: "+host+", "+vpn+", "+username+"; useDirect="+direct;
+            return "SolaceManagerConfig: "+host+", "+vpn+", "+username+"; useDirect="+direct;
         }
     }
 
@@ -159,6 +168,8 @@ public class SolaceManager extends AbstractManager {
     };
     
     
+
+    
     
     // BEGIN SolaceManager class ///////////////////////////////////////////////////////////////////
     
@@ -184,6 +195,8 @@ public class SolaceManager extends AbstractManager {
     private final XMLMessageProducer producer;
     final String hostnameOrIp;
     final String pid;
+    final ScheduledExecutorService msgSendThreadPool = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory("SolaceSender"));
+    final LinkedBlockingQueue<MsgToSend> msgsToSend = new LinkedBlockingQueue<>(10000);
     
     protected SolaceManager(String name, final SolaceManagerConfig config) throws JCSMPException {
         super(config.getContext(),name);
@@ -212,40 +225,85 @@ public class SolaceManager extends AbstractManager {
             
             }
         });
-        
+        msgSendThreadPool.submit(() -> {
+			List<MsgToSend> msgs = new ArrayList<>();
+			MsgToSend[] array = new MsgToSend[50];
+			int count = 0;
+        	while (true) {  // dameon thread, so will get shut down eventually
+        		if (producer.isClosed()) return;
+        		try {
+        			msgs.clear();
+        			count = msgsToSend.drainTo(msgs, 50);
+        			if (count == 0) {  // nothing to send, so pause for 10ms
+        				Thread.sleep(10);
+        			} else {
+	        			array = msgs.toArray(array);
+	        			producer.sendMultiple(array, 0, count, 0);
+        			}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JCSMPException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
+		});
     }
     
-    public void send(final LogEvent event, final Serializable serializable) throws JCSMPException {
-        //System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
+    private BytesXMLMessage buildMessage(final LogEvent event, final Serializable serializable) {
         TextMessage msg = JCSMPFactory.onlyInstance().createMessage(TextMessage.class);
         msg.setText(serializable != null ? serializable.toString().trim() : event.getMessage().getFormattedMessage().trim());
         if (!this.config.direct) msg.setDeliveryMode(DeliveryMode.PERSISTENT);
         // topic will look like 'log4j-log/hostname/pid/[INFO|WARN|etc.]/thread-name/com/whatever/blah/classname'
         msg.setSenderTimestamp(event.getTimeMillis());
+        SDTMap map = JCSMPFactory.onlyInstance().createMap();
+        try {
+			map.putString("thread", event.getThreadName());
+	        map.putString("loggerName", event.getLoggerName());
+	        map.putString("level", event.getLevel().name());
+	        map.putString("message", event.getMessage().getFormattedMessage());
+	        if (event.getThrownProxy() != null) {
+	            ThrowableProxy thrown = event.getThrownProxy();
+	            map.putString("thrownName",thrown.getName());
+	        }
+	        msg.setProperties(map);
+		} catch (SDTException e) {
+			// shouldn't happen
+		}
+        return msg;
+    }
+    
+    
+    private String buildTopic(final LogEvent event, final Serializable serializable) {
         String threadNameNoSlash = event.getThreadName().replaceAll("/","|");
         // for the topic of this message, if it's an exception being thrown, let's use the name of the exception in the topic instead
         String classNameTopic = (event.getThrownProxy() != null ? event.getThrownProxy().getName() : event.getLoggerName()).replaceAll("\\.","/");
-        
         String topic = String.format("log4j-%s/%s/%s/%s/%s",
                 (event.getThrownProxy() != null ? "error" : "log"),
                 config.appName.isEmpty() ? hostnameOrIp + "-" + pid : config.appName,
                 event.getLevel().toString(),
                 threadNameNoSlash,
                 classNameTopic);  // this last one could have multiple topic levels
+        return topic;
+    }
+    
+    boolean enqueue(final LogEvent event, final Serializable serializable) {
+    	BytesXMLMessage msg = buildMessage(event, serializable);
+    	String topic = buildTopic(event, serializable);
+    	boolean success = msgsToSend.offer(new MsgToSend(msg, topic));
+    	return success;
+    }
+    
+    void send(final LogEvent event, final Serializable serializable) throws JCSMPException {
+        //System.out.println("SENDING::>> "+serializable.toString() + "\n"+event.getSource().toString()+"\n"+event.getThreadName());
+    	BytesXMLMessage msg = buildMessage(event, serializable);
+    	String topic = buildTopic(event, serializable);
+    	
 //        if ("test" != "test") {
 //            topic += "/"+event.getMessage().getFormattedMessage();
 //            topic = topic.substring(0, Math.min(topic.length(), 250));
 //        }
-        SDTMap map = JCSMPFactory.onlyInstance().createMap();
-        map.putString("thread", event.getThreadName());
-        map.putString("loggerName", event.getLoggerName());
-        map.putString("level", event.getLevel().name());
-        map.putString("message", event.getMessage().getFormattedMessage());
-        if (event.getThrownProxy() != null) {
-            ThrowableProxy thrown = event.getThrownProxy();
-            map.putString("thrownName",thrown.getName());
-        }
-        msg.setProperties(map);
 //        System.out.println("SENDING::>> "+topic);
         producer.send(msg,JCSMPFactory.onlyInstance().createTopic(topic));
     }
