@@ -42,8 +42,8 @@ public class SolaceAppender extends AbstractAppender {
     enum PublishMode {
             DIRECT,
             GUAR_NO_REPUB,
-            GUAR_REPUB_NO_ORDER,
-            GUAR_STRICT_ORDER,
+//            GUAR_REPUB_NO_ORDER,  // not supported yet
+//            GUAR_STRICT_ORDER,  // not supported yet
             ;
     }
     
@@ -69,7 +69,14 @@ public class SolaceAppender extends AbstractAppender {
         private Boolean direct = false;
         
         @PluginBuilderAttribute
-        private String appName = "DefaultApp";
+        private String appName = "";
+//        {
+//        	try {
+//				appName = InetAddress.getLocalHost().getHostName() + "-";
+//			} catch (UnknownHostException e) {
+//				appName = "DefaultApp";
+//			}
+//        }
         
 
         // Programmatic access only for now.   ---- //  what does that mean???  copied from JMS appender
@@ -80,23 +87,22 @@ public class SolaceAppender extends AbstractAppender {
             super();
         }
         
-//        @SuppressWarnings("resource")
         @Override
         public SolaceAppender build() {
-            System.out.println("SOLACE APPENDER BUILDER BUILD() has been called");
+        	if (SolaceManager.DEBUG) System.out.println("SOLACE APPENDER BUILDER BUILD() has been called");
             Configuration config = getConfiguration();  // should get initialized by log4j framework, might not for Tests
             if (config != null) {
-                System.out.println("config properties: "+config.getProperties());
-                System.out.println("config context: "+config.getLoggerContext());
+            	if (SolaceManager.DEBUG) System.out.println("config properties: "+config.getProperties());
+            	if (SolaceManager.DEBUG) System.out.println("config context: "+config.getLoggerContext());
             } else {
-                System.out.println("config is null");
+            	if (SolaceManager.DEBUG) System.out.println("config is null");
             }
-            System.out.println("host is : "+host);
-            System.out.println("vpn is : "+vpn);
-            System.out.println("username is : "+username);
-            System.out.println("password is "+ (password==null ? "null": password.isEmpty() ? "unset" : "set"));
+            if (SolaceManager.DEBUG) System.out.println("host is : "+host);
+            if (SolaceManager.DEBUG) System.out.println("vpn is : "+vpn);
+            if (SolaceManager.DEBUG) System.out.println("username is : "+username);
+            if (SolaceManager.DEBUG) System.out.println("password is "+ (password==null ? "null": password.isEmpty() ? "unset" : "set"));
 //            System.out.println("topicFormat is : "+topicFormat);
-            System.out.println("direct is : "+direct);
+            if (SolaceManager.DEBUG) System.out.println("direct is : "+direct);
             
             SolaceManagerConfig solaceConfig = new SolaceManagerConfig();
             solaceConfig.setHost(host);
@@ -104,10 +110,10 @@ public class SolaceAppender extends AbstractAppender {
             solaceConfig.setUsername(username);
             solaceConfig.setPassword(password);
 //            solaceConfig.setTopicFormat(topicFormat);
-            solaceConfig.setDirect(direct);
+            solaceConfig.setSendMode(direct ? PublishMode.DIRECT : PublishMode.GUAR_NO_REPUB);
             solaceConfig.setAppName(appName);
             if (config != null) solaceConfig.setContext(config.getLoggerContext());
-            LOGGER.debug(solaceConfig.toString());
+            if (SolaceManager.DEBUG) System.out.println(solaceConfig.toString());
 
             //final Layout<? extends Serializable> layout = getLayout();
             //if (layout == null) {
@@ -200,7 +206,7 @@ public class SolaceAppender extends AbstractAppender {
     
     @PluginBuilderFactory
     public static <B extends Builder<B>> B newBuilder() {
-        System.out.println("******* SolaceAppdneder.newBuilder() called");
+        if (SolaceManager.DEBUG) System.out.println("******* SolaceAppdneder.newBuilder() called");
         return new SolaceAppender.Builder<B>().asBuilder();
     }
     
@@ -209,7 +215,7 @@ public class SolaceAppender extends AbstractAppender {
     // the actual constructor!  Called by Builder.build() above
     protected SolaceAppender(String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions, Property[] properties, SolaceManager manager) {
         super(name, filter, layout, ignoreExceptions, properties);
-        System.out.println("STDOUT SOLACE APPENDER constructor");
+        if (SolaceManager.DEBUG) System.out.println("STDOUT SOLACE APPENDER constructor");
         //this.manager = manager;
         this.manager = Objects.requireNonNull(manager, "manager");
         // anything else here???
@@ -217,9 +223,10 @@ public class SolaceAppender extends AbstractAppender {
 
     @Override
     public void append(final LogEvent event) {
-    	boolean success = this.manager.enqueue(event, toSerializable(event));
+    	if (SolaceManager.DEBUG) System.out.println("APPEND CALLED");
+    	boolean success = this.manager.enqueueForBatchSend(event, toSerializable(event));
     	if (!success) {
-    		LOGGER.info("Could not enqueue log msg to send on Solace, max send buffer capacity reached");
+    		if (SolaceManager.DEBUG) System.out.println("Could not enqueue log msg to send on Solace, max send buffer capacity reached");
     	}
 //        try {
 //            // if layout is null, toSerializable() will return null
@@ -230,7 +237,7 @@ public class SolaceAppender extends AbstractAppender {
     }
       
     public SolaceManager getManager() {
-        System.out.println("SolaceAPpender.getManager() called");
+        if (SolaceManager.DEBUG) System.out.println("SolaceAPpender.getManager() called");
         return manager;
     }
 

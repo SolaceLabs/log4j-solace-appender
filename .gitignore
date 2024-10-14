@@ -10,3 +10,8 @@ bin/
 
 # Ignore VSCode settings folder
 .vscode/
+
+# Ignore IntelliJ stuff
+log4j-solace-appender.iml
+log4j-solace-appender.ipr
+log4j-solace-appender.iws

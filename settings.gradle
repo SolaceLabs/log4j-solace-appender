@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'log4j-solace-appender'
-include('lib')
+//include('lib')
