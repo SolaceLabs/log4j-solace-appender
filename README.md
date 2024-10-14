@@ -1,4 +1,4 @@
-# Solace Appender for log4j 2.14+
+# Solace Appender for log4j2
 
 This is a Solace PubSub+ Appender for log4j2.  It can use either Direct messaging, or Guaranteed (but does not attempt redelivery if a NACK is received).  The published **topic is completely dynamic!**  E.g.:
 
@@ -9,7 +9,7 @@ log4j-log/AaronsThinkPad3-12540/INFO/pub-thread/com/solacesystems/jcsmp/protocol
                  (or app name)
 ```                  
 
-So much better than crappy JMS and Kafka publishers that just publish to a fixed static topic, like "logs" or "systemXYZ.logs"!  Same with most of the MQTT ones I've found online.
+So much better than crappy JMS and Kafka publishers that just publish to a fixed static topic, like "logs" or "systemXYZ.logs"!  Same with most of the MQTT ones I've found online.  The topic structure is currently hard-coded, but perhaps a future version will allow it to be specified, similar to the PatternLayout.
 
 This multi-level topic structure allows you to do things like:
 
@@ -54,4 +54,4 @@ As an example, in your log4j2.xml file, specify a `Solace` Appender, something l
 
 ## Shadow MegaJAR bundle
 
-Has JCSMP 10.24.1 bundled inside, which includes a ton of netty files.
+Has JCSMP 10.22.0 bundled inside, makes importing the Appender into other Solace projects easier.  Using 10.22 as there's a bug in the current JCSMP version that breaks something during log4j's static initialization.
