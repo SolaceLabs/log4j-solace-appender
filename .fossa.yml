@@ -1,0 +1,25 @@
+version: 3
+
+project:
+  locator: SolaceLabs_log4j-solace-appender
+  id: SolaceLabs_log4j-solace-appender
+  name: log4j-solace-appender
+  teams: []
+  labels:
+    - java
+
+vendoredDependencies:
+  forceRescans: false
+  scanMethod: CLILicenseScan
+  licenseScanPathFilters:
+    exclude:
+      - "./.git"
+      - "./.github"
+
+paths:
+  exclude:
+    - ./.git
+    - ./.github
+
+telemetry:
+  scope: full
